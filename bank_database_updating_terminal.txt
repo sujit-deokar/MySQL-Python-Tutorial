@@ -1,0 +1,553 @@
+(base) sujit@sujit-Inspiron-3558:~$ mysql -u root -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 14
+Server version: 5.7.26-0ubuntu0.16.04.1 (Ubuntu)
+
+Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> use bank_database
+Database changed
+mysql> CREATE TABLE employee(emp_id INT PRIMARY KEY,
+    -> first_name VARCHAR(40), last_name VARCHAR(40),
+    -> birth_day DATE,sex VARCHAR(1),salary INT,super_id INT,branch_id INT);
+Query OK, 0 rows affected (0.40 sec)
+
+mysql> CREATE TABLE branch(branch_id INT PRIMARY KEY,branch_name VARCHAR(40),
+    -> mgr_id INT, mgr_start_date DATE,FOREIGN KEY(mgr_id) REFERENCES employee(emp_id) ON DELETE SET NULL);
+Query OK, 0 rows affected (0.31 sec)
+
+mysql> ALTER TABLE employee ADD FOREIGN KEY(branch_id) REFERENCES branch(branch_id) ON DELETE SET NULL);
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ')' at line 1
+mysql> ALTER TABLE employee ADD FOREIGN KEY(branch_id) REFERENCES branch(branch_id) ON DELETE SET NULL;
+Query OK, 0 rows affected (0.63 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> DESCRIBE employee;
++------------+-------------+------+-----+---------+-------+
+| Field      | Type        | Null | Key | Default | Extra |
++------------+-------------+------+-----+---------+-------+
+| emp_id     | int(11)     | NO   | PRI | NULL    |       |
+| first_name | varchar(40) | YES  |     | NULL    |       |
+| last_name  | varchar(40) | YES  |     | NULL    |       |
+| birth_day  | date        | YES  |     | NULL    |       |
+| sex        | varchar(1)  | YES  |     | NULL    |       |
+| salary     | int(11)     | YES  |     | NULL    |       |
+| super_id   | int(11)     | YES  |     | NULL    |       |
+| branch_id  | int(11)     | YES  | MUL | NULL    |       |
++------------+-------------+------+-----+---------+-------+
+8 rows in set (0.00 sec)
+
+mysql> DESCRIBE branch;
++----------------+-------------+------+-----+---------+-------+
+| Field          | Type        | Null | Key | Default | Extra |
++----------------+-------------+------+-----+---------+-------+
+| branch_id      | int(11)     | NO   | PRI | NULL    |       |
+| branch_name    | varchar(40) | YES  |     | NULL    |       |
+| mgr_id         | int(11)     | YES  | MUL | NULL    |       |
+| mgr_start_date | date        | YES  |     | NULL    |       |
++----------------+-------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+mysql> ALTER TABLE employee ADD FOREIGN KEY(super_id) REFERENCES employee(emp_id) ON DELETE SET NULL;
+Query OK, 0 rows affected (0.71 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> DESCRIBE employee;                                                       +------------+-------------+------+-----+---------+-------+
+| Field      | Type        | Null | Key | Default | Extra |
++------------+-------------+------+-----+---------+-------+
+| emp_id     | int(11)     | NO   | PRI | NULL    |       |
+| first_name | varchar(40) | YES  |     | NULL    |       |
+| last_name  | varchar(40) | YES  |     | NULL    |       |
+| birth_day  | date        | YES  |     | NULL    |       |
+| sex        | varchar(1)  | YES  |     | NULL    |       |
+| salary     | int(11)     | YES  |     | NULL    |       |
+| super_id   | int(11)     | YES  | MUL | NULL    |       |
+| branch_id  | int(11)     | YES  | MUL | NULL    |       |
++------------+-------------+------+-----+---------+-------+
+8 rows in set (0.00 sec)
+
+mysql> CREATE TABLE client(client_id INT,client_name VARCHAR(40),branch_id INT,
+    -> PRIMARY KEY(client_id), FOREIGN KEY(branch_id) REFERENCES branch(branch_id) ON DELETE SET NULL);
+Query OK, 0 rows affected (0.32 sec)
+
+mysql> DESCRIBE client;
++-------------+-------------+------+-----+---------+-------+
+| Field       | Type        | Null | Key | Default | Extra |
++-------------+-------------+------+-----+---------+-------+
+| client_id   | int(11)     | NO   | PRI | NULL    |       |
+| client_name | varchar(40) | YES  |     | NULL    |       |
+| branch_id   | int(11)     | YES  | MUL | NULL    |       |
++-------------+-------------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+mysql> CREATE TABLE work_with(emp_id INT,client INT,total_sales INT,
+    -> PRIMARY KEY(emp_id,client), 
+    -> FOREIGN KEY(emp_id) REFERENCES employee(emp_id) ON DELETE SET NULL,
+    -> FOREIGN KEY(client) REFERENCES client(client_id) ON DELETE SET NULL);
+ERROR 1215 (HY000): Cannot add foreign key constraint
+mysql> CREATE TABLE work_with(emp_id INT,client_id INT,total_sales INT, PRIMARY KEY(emp_id,client),  FOREIGN KEY(emp_id) REFERENCES employee(emp_id) ON DELETE SET NULL, FOREIGN KEY(client_id) REFERENCES client(client_id) ON DELETE SET NULL);
+ERROR 1072 (42000): Key column 'client' doesn't exist in table
+mysql> CREATE TABLE work_with(emp_id INT,client_id INT,total_sales INT, PRIMARY KEY(emp_id,client_id),  FOREIGN KEY(emp_id) REFERENCES employee(emp_id) ON DELETE SET NULL, FOREIGN KEY(client_id) REFERENCES client(client_id) ON DELETE SET NULL);
+ERROR 1215 (HY000): Cannot add foreign key constraint
+mysql> CREATE TABLE work_with(emp_id INT,client_id INT,total_sales INT,
+    -> PRIMARY KEY(emp_id,client_id),
+    -> FOREIGN KEY(emp_id) REFERENCES employee(emp_id) ON  DELETE SET NULL,
+    -> FOREIGN KEY(client_id) REFERENCES client(client_id) ON DELETE SET NULL);
+ERROR 1215 (HY000): Cannot add foreign key constraint
+mysql> CREATE TABLE work_with(emp_id INT,client_id INT,total_sales INT, PRIMARY KEY(emp_id,client_id), FOREIGN KEY(emp_id) REFERENCES employee(emp_id) ON  DELETE SET NULL, FOREIGN KEY(client_id) REFERENCES client(client_id) ON DELETE SET NULL);
+ERROR 1215 (HY000): Cannot add foreign key constraint
+mysql> CREATE TABLE work_with(emp_id INT,client_id INT,total_sales INT, PRIMARY KEY(emp_id,client_id), FOREIGN KEY(emp_id) REFERENCES employee(emp_id) ON  DELETE SET NULL);
+ERROR 1215 (HY000): Cannot add foreign key constraint
+mysql> CREATE TABLE work_with(emp_id INT,client_id INT,total_sales INT, PRIMARY KEY(emp_id,client_id));
+
+Query OK, 0 rows affected (0.27 sec)
+
+mysql> 
+mysql> DESCRIBE work_with;
++-------------+---------+------+-----+---------+-------+
+| Field       | Type    | Null | Key | Default | Extra |
++-------------+---------+------+-----+---------+-------+
+| emp_id      | int(11) | NO   | PRI | NULL    |       |
+| client_id   | int(11) | NO   | PRI | NULL    |       |
+| total_sales | int(11) | YES  |     | NULL    |       |
++-------------+---------+------+-----+---------+-------+
+3 rows in set (0.01 sec)
+
+mysql> ALTER TALBE work_with ADD FOREIGN KEY(emp_id) REFERENCES employee(emp_id) ON DELETE CASCADE;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'TALBE work_with ADD FOREIGN KEY(emp_id) REFERENCES employee(emp_id) ON DELETE CA' at line 1
+mysql> ALTER TABLE work_with ADD FOREIGN KEY(emp_id) REFERENCES employee(emp_id) ON DELETE CASCADE;
+Query OK, 0 rows affected (0.89 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> ALTER TABLE work_with ADD FOREIGN KEY(emp_id) REFERENCES client(client_id) ON DELETE CASCADE;
+Query OK, 0 rows affected (0.97 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> DESCRIBE work_with;
++-------------+---------+------+-----+---------+-------+
+| Field       | Type    | Null | Key | Default | Extra |
++-------------+---------+------+-----+---------+-------+
+| emp_id      | int(11) | NO   | PRI | NULL    |       |
+| client_id   | int(11) | NO   | PRI | NULL    |       |
+| total_sales | int(11) | YES  |     | NULL    |       |
++-------------+---------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+mysql> CREATE TABLE branch_supplier(branch_id INT,supplier_name VARCHAR(50),
+    -> supply_type VARCHAR(40), PRIMARY KEY(branch_id,supplier_name),
+    -> FOREIGN KEY(branch_id) REFERENCES branch(branch_id) ON DELETE CASCADE);
+Query OK, 0 rows affected (0.30 sec)
+
+mysql> DESCRIBE branch_supplier;
++---------------+-------------+------+-----+---------+-------+
+| Field         | Type        | Null | Key | Default | Extra |
++---------------+-------------+------+-----+---------+-------+
+| branch_id     | int(11)     | NO   | PRI | NULL    |       |
+| supplier_name | varchar(50) | NO   | PRI | NULL    |       |
+| supply_type   | varchar(40) | YES  |     | NULL    |       |
++---------------+-------------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+mysql> INSERT INTO employee VALUES(100,'DAVID','WALLACE','1967-11-7','M',250000,NULL,NULL);
+Query OK, 1 row affected (0.09 sec)
+
+mysql> DESCRIBE branch_supplier;                                                +---------------+-------------+------+-----+---------+-------+
+| Field         | Type        | Null | Key | Default | Extra |
++---------------+-------------+------+-----+---------+-------+
+| branch_id     | int(11)     | NO   | PRI | NULL    |       |
+| supplier_name | varchar(50) | NO   | PRI | NULL    |       |
+| supply_type   | varchar(40) | YES  |     | NULL    |       |
++---------------+-------------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM employee;
++--------+------------+-----------+------------+------+--------+----------+-----------+
+| emp_id | first_name | last_name | birth_day  | sex  | salary | super_id | branch_id |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+|    100 | DAVID      | WALLACE   | 1967-11-07 | M    | 250000 |     NULL |      NULL |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+1 row in set (0.00 sec)
+
+mysql> INSERT INTO branch VALUES(1,'Corporate',100,'2006-02-09');
+Query OK, 1 row affected (0.07 sec)
+
+mysql> UPDATE employee SET branch_id = 1 WHERE emp_id=100;
+Query OK, 1 row affected (0.07 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT * FROM employee;
++--------+------------+-----------+------------+------+--------+----------+-----------+
+| emp_id | first_name | last_name | birth_day  | sex  | salary | super_id | branch_id |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+|    100 | DAVID      | WALLACE   | 1967-11-07 | M    | 250000 |     NULL |         1 |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM branch;
++-----------+-------------+--------+----------------+
+| branch_id | branch_name | mgr_id | mgr_start_date |
++-----------+-------------+--------+----------------+
+|         1 | Corporate   |    100 | 2006-02-09     |
++-----------+-------------+--------+----------------+
+1 row in set (0.00 sec)
+
+mysql> INSERT INTO employee VALUES(101,'Jan','Levinson','1961-05-11','F',110000,100,1);
+Query OK, 1 row affected (0.24 sec)
+
+mysql> SELECT * FROM employee;
++--------+------------+-----------+------------+------+--------+----------+-----------+
+| emp_id | first_name | last_name | birth_day  | sex  | salary | super_id | branch_id |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+|    100 | DAVID      | WALLACE   | 1967-11-07 | M    | 250000 |     NULL |         1 |
+|    101 | Jan        | Levinson  | 1961-05-11 | F    | 110000 |      100 |         1 |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+2 rows in set (0.00 sec)
+
+mysql> INSERT INTO employee VALUES(102,'Michael','Scott','1964-03-15','M',75000,100,NULL);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO branch VALUES(2,'Scranton',102,'1992-04-06');
+Query OK, 1 row affected (0.06 sec)
+
+mysql> UPDATE employee SET branch_id=2 WHERE emp_id=102;
+Query OK, 1 row affected (0.34 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT * FROM employee;
++--------+------------+-----------+------------+------+--------+----------+-----------+
+| emp_id | first_name | last_name | birth_day  | sex  | salary | super_id | branch_id |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+|    100 | DAVID      | WALLACE   | 1967-11-07 | M    | 250000 |     NULL |         1 |
+|    101 | Jan        | Levinson  | 1961-05-11 | F    | 110000 |      100 |         1 |
+|    102 | Michael    | Scott     | 1964-03-15 | M    |  75000 |      100 |         2 |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM branch;
++-----------+-------------+--------+----------------+
+| branch_id | branch_name | mgr_id | mgr_start_date |
++-----------+-------------+--------+----------------+
+|         1 | Corporate   |    100 | 2006-02-09     |
+|         2 | Scranton    |    102 | 1992-04-06     |
++-----------+-------------+--------+----------------+
+2 rows in set (0.00 sec)
+
+mysql> INSERT INTO branch VALUES(3,'Stamford',106,'1992-04-06');
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`bank_database`.`branch`, CONSTRAINT `branch_ibfk_1` FOREIGN KEY (`mgr_id`) REFERENCES `employee` (`emp_id`) ON DELETE SET NULL)
+mysql> INSERT INTO employee VALUES(103,'Angela','Martin','1971-06-25','F',63000,102,2);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO employee VALUES(104,'Kelly','Kapoor','1980-02-05','F',55000,102,2);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO employee VALUES(105,'Stanley','Hudson','1958-02-19','M',69000,100,2);
+Query OK, 1 row affected (0.06 sec)
+
+mysql> INSERT INTO employee VALUES(106,'Josh','Porter','1969-09-05','M',78000,100,NULL);
+Query OK, 1 row affected (0.03 sec)
+
+mysql> INSERT INTO branch VALUES(3,'Stamford',106,'1998-02-13');
+Query OK, 1 row affected (0.06 sec)
+
+mysql> UPDATE employee SET branch_id=3 WHERE emp_id=106;
+Query OK, 1 row affected (0.06 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT * FROM employee;
++--------+------------+-----------+------------+------+--------+----------+-----------+
+| emp_id | first_name | last_name | birth_day  | sex  | salary | super_id | branch_id |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+|    100 | DAVID      | WALLACE   | 1967-11-07 | M    | 250000 |     NULL |         1 |
+|    101 | Jan        | Levinson  | 1961-05-11 | F    | 110000 |      100 |         1 |
+|    102 | Michael    | Scott     | 1964-03-15 | M    |  75000 |      100 |         2 |
+|    103 | Angela     | Martin    | 1971-06-25 | F    |  63000 |      102 |         2 |
+|    104 | Kelly      | Kapoor    | 1980-02-05 | F    |  55000 |      102 |         2 |
+|    105 | Stanley    | Hudson    | 1958-02-19 | M    |  69000 |      100 |         2 |
+|    106 | Josh       | Porter    | 1969-09-05 | M    |  78000 |      100 |         3 |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+7 rows in set (0.01 sec)
+
+
+
+
+
+
+
+
+(base) sujit@sujit-Inspiron-3558:~$ mysql -u root -p
+Enter password: 
+ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)
+(base) sujit@sujit-Inspiron-3558:~$ mysql -u root -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 4
+Server version: 5.7.26-0ubuntu0.16.04.1 (Ubuntu)
+
+Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> use bank_database
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables;
++-------------------------+
+| Tables_in_bank_database |
++-------------------------+
+| branch                  |
+| branch_supplier         |
+| client                  |
+| employee                |
+| work_with               |
++-------------------------+
+5 rows in set (0.01 sec)
+
+mysql> SELECT * FROM employee
+    -> ;
++--------+------------+-----------+------------+------+--------+----------+-----------+
+| emp_id | first_name | last_name | birth_day  | sex  | salary | super_id | branch_id |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+|    100 | DAVID      | WALLACE   | 1967-11-07 | M    | 250000 |     NULL |         1 |
+|    101 | Jan        | Levinson  | 1961-05-11 | F    | 110000 |      100 |         1 |
+|    102 | Michael    | Scott     | 1964-03-15 | M    |  75000 |      100 |         2 |
+|    103 | Angela     | Martin    | 1971-06-25 | F    |  63000 |      102 |         2 |
+|    104 | Kelly      | Kapoor    | 1980-02-05 | F    |  55000 |      102 |         2 |
+|    105 | Stanley    | Hudson    | 1958-02-19 | M    |  69000 |      100 |         2 |
+|    106 | Josh       | Porter    | 1969-09-05 | M    |  78000 |      100 |         3 |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+7 rows in set (0.00 sec)
+
+mysql> INSERT INTO employee VALUES(107,'Andy','Bernard','1973-07-22','M',65000,106,3);
+Query OK, 1 row affected (0.10 sec)
+
+mysql> INSERT INTO employee VALUES(108,'Jim','Halpart','1978-10-01','M',71000,106,3);
+Query OK, 1 row affected (0.06 sec)
+
+mysql> SELECT * FROM employee;
++--------+------------+-----------+------------+------+--------+----------+-----------+
+| emp_id | first_name | last_name | birth_day  | sex  | salary | super_id | branch_id |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+|    100 | DAVID      | WALLACE   | 1967-11-07 | M    | 250000 |     NULL |         1 |
+|    101 | Jan        | Levinson  | 1961-05-11 | F    | 110000 |      100 |         1 |
+|    102 | Michael    | Scott     | 1964-03-15 | M    |  75000 |      100 |         2 |
+|    103 | Angela     | Martin    | 1971-06-25 | F    |  63000 |      102 |         2 |
+|    104 | Kelly      | Kapoor    | 1980-02-05 | F    |  55000 |      102 |         2 |
+|    105 | Stanley    | Hudson    | 1958-02-19 | M    |  69000 |      100 |         2 |
+|    106 | Josh       | Porter    | 1969-09-05 | M    |  78000 |      100 |         3 |
+|    107 | Andy       | Bernard   | 1973-07-22 | M    |  65000 |      106 |         3 |
+|    108 | Jim        | Halpart   | 1978-10-01 | M    |  71000 |      106 |         3 |
++--------+------------+-----------+------------+------+--------+----------+-----------+
+9 rows in set (0.00 sec)
+
+mysql> INSERT INTO client VALUES(400,'Dunmore Highschool',2);
+Query OK, 1 row affected (0.06 sec)
+
+mysql> INSERT INTO client VALUES(401,'Lackawana Country',2);
+Query OK, 1 row affected (0.06 sec)
+
+mysql> INSERT INTO client VALUES(401,'FedEx',3);
+ERROR 1062 (23000): Duplicate entry '401' for key 'PRIMARY'
+mysql> INSERT INTO client VALUES(402,'FedEx',3);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO client VALUES(403,'John Daly Law, LLC',3);
+Query OK, 1 row affected (0.33 sec)
+
+mysql> INSERT INTO client VALUES(404,'Scranton Whitepages',2);
+Query OK, 1 row affected (0.08 sec)
+
+mysql> INSERT INTO client VALUES(405,'Times Newspaper',3);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO client VALUES(406,'FedEx',2);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO work_with VALUES(105,400,55000);
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`bank_database`.`work_with`, CONSTRAINT `work_with_ibfk_2` FOREIGN KEY (`emp_id`) REFERENCES `client` (`client_id`) ON DELETE CASCADE)
+mysql> SELECT * FROM work_with;
+Empty set (0.00 sec)
+
+mysql> DESCRIBE work_with;
++-------------+---------+------+-----+---------+-------+
+| Field       | Type    | Null | Key | Default | Extra |
++-------------+---------+------+-----+---------+-------+
+| emp_id      | int(11) | NO   | PRI | NULL    |       |
+| client_id   | int(11) | NO   | PRI | NULL    |       |
+| total_sales | int(11) | YES  |     | NULL    |       |
++-------------+---------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM client;
++-----------+---------------------+-----------+
+| client_id | client_name         | branch_id |
++-----------+---------------------+-----------+
+|       400 | Dunmore Highschool  |         2 |
+|       401 | Lackawana Country   |         2 |
+|       402 | FedEx               |         3 |
+|       403 | John Daly Law, LLC  |         3 |
+|       404 | Scranton Whitepages |         2 |
+|       405 | Times Newspaper     |         3 |
+|       406 | FedEx               |         2 |
++-----------+---------------------+-----------+
+7 rows in set (0.00 sec)
+
+mysql> INSERT INTO work_with VALUES(105,400,55000);
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`bank_database`.`work_with`, CONSTRAINT `work_with_ibfk_2` FOREIGN KEY (`emp_id`) REFERENCES `client` (`client_id`) ON DELETE CASCADE)
+mysql> INSERT INTO work_with VALUES(102,401,267000);
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`bank_database`.`work_with`, CONSTRAINT `work_with_ibfk_2` FOREIGN KEY (`emp_id`) REFERENCES `client` (`client_id`) ON DELETE CASCADE)
+mysql> ALTER TABLE work_with ADD PRIMARY KEY(emp_id,client_id);
+ERROR 1068 (42000): Multiple primary key defined
+mysql> ALTER TABLE work_with ADD FOREIGN KEY(emp_id) REFERENCES employee(emp_id);
+Query OK, 0 rows affected (1.00 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> ALTER TABLE work_with ADD FOREIGN KEY(client_id) REFERENCES client(client_id);
+Query OK, 0 rows affected (0.64 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO work_with VALUES(105,400,55000);
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`bank_database`.`work_with`, CONSTRAINT `work_with_ibfk_2` FOREIGN KEY (`emp_id`) REFERENCES `client` (`client_id`) ON DELETE CASCADE)
+mysql> INSERT INTO branch_supplier VALUES(2,'Hammer Mill','Paper');
+Query OK, 1 row affected (0.06 sec)
+
+mysql> INSERT INTO branch_supplier VALUES(2,'Uni Ball','Writing Utensils');
+Query OK, 1 row affected (0.06 sec)
+
+mysql> INSERT INTO branch_supplier VALUES(3,'Patriot Paper','Paper');
+Query OK, 1 row affected (0.06 sec)
+
+mysql> INSERT INTO branch_supplier VALUES(2,'J.T. Forms & Labels','Custom Forms');
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO branch_supplier VALUES(3,'Uni Ball','Writing Utensils');
+Query OK, 1 row affected (0.08 sec)
+
+mysql> INSERT INTO branch_supplier VALUES(3,'Hammer Mill','Paper');
+Query OK, 1 row affected (0.74 sec)
+
+mysql> INSERT INTO branch_supplier VALUES(3,'Stamford Lables','Custom Forms');
+Query OK, 1 row affected (0.07 sec)
+
+mysql> SELECT * FROM branch_supplier;
++-----------+---------------------+------------------+
+| branch_id | supplier_name       | supply_type      |
++-----------+---------------------+------------------+
+|         2 | Hammer Mill         | Paper            |
+|         2 | J.T. Forms & Labels | Custom Forms     |
+|         2 | Uni Ball            | Writing Utensils |
+|         3 | Hammer Mill         | Paper            |
+|         3 | Patriot Paper       | Paper            |
+|         3 | Stamford Lables     | Custom Forms     |
+|         3 | Uni Ball            | Writing Utensils |
++-----------+---------------------+------------------+
+7 rows in set (0.00 sec)
+
+mysql> INSERT INTO work_with VALUES(105,400,55000);
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`bank_database`.`work_with`, CONSTRAINT `work_with_ibfk_2` FOREIGN KEY (`emp_id`) REFERENCES `client` (`client_id`) ON DELETE CASCADE)
+mysql> DROP TABLE work_with;
+Query OK, 0 rows affected (0.13 sec)
+
+mysql> DESCRIBE work_with;
+ERROR 1146 (42S02): Table 'bank_database.work_with' doesn't exist
+mysql> CREATE TABLE work_with(emp_id INT,client_id INT,total_sales INT,
+    -> PRIMARY KEY(emp_id,client_id), FOREIGN KEY(emp_id) REFERENCES employee(emp_id),
+    -> FOREIGN KEY(client_id) REFERENCES client(client_id));
+Query OK, 0 rows affected (0.31 sec)
+
+mysql> INSERT INTO work_with VALUES(105,400,55000);
+Query OK, 1 row affected (0.34 sec)
+
+mysql> INSERT INTO work_with VALUES(102,401,267000);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO work_with VALUES(108,402,22500);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO work_with VALUES(107,403,5000);
+Query OK, 1 row affected (0.05 sec)
+
+mysql> INSERT INTO work_with VALUES(108,404,12000);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO work_with VALUES(105,404,33000);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> UPDATE work_with SET client_id=403;
+ERROR 1062 (23000): Duplicate entry '105-403' for key 'PRIMARY'
+mysql> UPDATE work_with SET client_id=403 WHERE emp_id=108;
+ERROR 1062 (23000): Duplicate entry '108-403' for key 'PRIMARY'
+mysql> SELECT * FROM work_with;
++--------+-----------+-------------+
+| emp_id | client_id | total_sales |
++--------+-----------+-------------+
+|    102 |       401 |      267000 |
+|    105 |       400 |       55000 |
+|    105 |       404 |       33000 |
+|    107 |       403 |        5000 |
+|    108 |       402 |       22500 |
+|    108 |       404 |       12000 |
++--------+-----------+-------------+
+6 rows in set (0.00 sec)
+
+mysql> UPDATE work_with SET emp__id=105 WHERE emp_id=108 AND total_sales=12000;
+ERROR 1054 (42S22): Unknown column 'emp__id' in 'field list'
+mysql> UPDATE work_with SET emp_id=105 WHERE emp_id=108 AND total_sales=12000;
+ERROR 1062 (23000): Duplicate entry '105-404' for key 'PRIMARY'
+mysql> UPDATE work_with SET client_id=403 WHERE emp_id=108 AND total_sales=12000;
+Query OK, 1 row affected (0.06 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> SELECT * FROM work_with;
++--------+-----------+-------------+
+| emp_id | client_id | total_sales |
++--------+-----------+-------------+
+|    102 |       401 |      267000 |
+|    105 |       400 |       55000 |
+|    105 |       404 |       33000 |
+|    107 |       403 |        5000 |
+|    108 |       402 |       22500 |
+|    108 |       403 |       12000 |
++--------+-----------+-------------+
+6 rows in set (0.00 sec)
+
+mysql> INSERT INTO work_with VALUES(107,405,26000);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> INSERT INTO work_with VALUES(102,406,15000);
+Query OK, 1 row affected (0.08 sec)
+
+mysql> INSERT INTO work_with VALUES(105,406,130000);
+Query OK, 1 row affected (0.07 sec)
+
+mysql> SELECT * FROM work_with;
++--------+-----------+-------------+
+| emp_id | client_id | total_sales |
++--------+-----------+-------------+
+|    102 |       401 |      267000 |
+|    102 |       406 |       15000 |
+|    105 |       400 |       55000 |
+|    105 |       404 |       33000 |
+|    105 |       406 |      130000 |
+|    107 |       403 |        5000 |
+|    107 |       405 |       26000 |
+|    108 |       402 |       22500 |
+|    108 |       403 |       12000 |
++--------+-----------+-------------+
+9 rows in set (0.00 sec)
+
+mysql> 
+
+
